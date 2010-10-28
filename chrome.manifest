@@ -1,0 +1,3 @@
+content jsbeautifier chrome/content/
+resource modules chrome/content/
+overlay chrome://browser/content/browser.xul chrome://jsbeautifier/content/firefoxOverlay.xul
