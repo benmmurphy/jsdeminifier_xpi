@@ -1,0 +1,9 @@
+uses the javascript beautifier from jsbeautifier.org to beautify all http responses with the mime type text/javascript or application/javascript. 
+
+WARNING: this plugin is applied globally and may screw up your web browsing session.
+
+KNOWN ISSUES
+------------
+
+* doesn't handle character encoding properly
+* weird errors when calling 'this.originalListener.onStartRequest(request, context);'

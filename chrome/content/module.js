@@ -1,6 +1,27 @@
 var EXPORTED_SYMBOLS = ["jsbeautifier"]; 
 
-var jsbeautifier = {};
+var jsbeautifier = {active:false, listeners: []};
+
+jsbeautifier.addListener = function(l) {
+	this.listeners.push(l);
+};
+
+jsbeautifier.removeListener = function(l) {
+	var i = this.listeners.indexOf(l);
+	if (i < 0) {
+		return;
+	}
+	Components.utils.reportError("removing listener: " + i);
+	this.listeners.splice(i, 1);
+	Components.utils.reportError("listeners: " + this.listeners);
+};
+
+jsbeautifier.toggle = function() {
+	this.active = !this.active;
+	for (var i = 0; i < this.listeners.length; ++i) {
+		this.listeners[i]();
+	}
+};
 
 var jsb = function() {
 
@@ -12,7 +33,8 @@ var jsb = function() {
 		
 	var httpRequestObserver = {
 		observe: function(subject, topic, data) {
-			if (topic == 'http-on-examine-response' || topic == 'http-on-examine-cached-response') {
+			
+			if (jsbeautifier.active && (topic == 'http-on-examine-response' || topic == 'http-on-examine-cached-response')) {
 				if (subject instanceof Components.interfaces.nsIHttpChannel) {
 					var newListener = new JSBeautifierListener();
 					subject.QueryInterface(Ci.nsITraceableChannel);
