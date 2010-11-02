@@ -11,9 +11,7 @@ jsbeautifier.removeListener = function(l) {
 	if (i < 0) {
 		return;
 	}
-	Components.utils.reportError("removing listener: " + i);
 	this.listeners.splice(i, 1);
-	Components.utils.reportError("listeners: " + this.listeners);
 };
 
 jsbeautifier.toggle = function() {
@@ -33,7 +31,6 @@ var jsb = function() {
 		
 	var httpRequestObserver = {
 		observe: function(subject, topic, data) {
-			
 			if (jsbeautifier.active && (topic == 'http-on-examine-response' || topic == 'http-on-examine-cached-response')) {
 				if (subject instanceof Components.interfaces.nsIHttpChannel) {
 					var newListener = new JSBeautifierListener();
@@ -67,9 +64,13 @@ var jsb = function() {
 	}
 	
 	JSBeautifierListener.prototype.isJavascript = function(subject) {
-			if (subject instanceof Components.interfaces.nsIHttpChannel) {
-				var contentType = subject.getResponseHeader("Content-Type");
-				return contentType != null && (contentType.indexOf("text/javascript") !== -1 || contentType.indexOf("application/javascript") !== -1);
+			try {
+				if (subject instanceof Components.interfaces.nsIHttpChannel) {
+					var contentType = subject.getResponseHeader("Content-Type");
+					return contentType != null && (contentType.indexOf("text/javascript") !== -1 || contentType.indexOf("application/javascript") !== -1 || contentType.indexOf("application/x-javascript") !== -1);
+				}
+			} catch (err) {
+				// ignore
 			}
 			
 			return false;
@@ -84,14 +85,21 @@ var jsb = function() {
 			var data = binaryInputStream.readBytes(count);
 			this.receivedData.push(data);
 		} else {
-			this.originalListener.onDataAvailable(request, context, inputStream, offset, count);
+			try {
+				this.originalListener.onDataAvailable(request, context, inputStream, offset, count);
+			} catch (err) {
+				request.cancel(err.result);
+			}
 		}
 	};
 	
 	JSBeautifierListener.prototype.onStartRequest = function(request, context) {
 		this.intercept = this.isJavascript(request);
-
-		this.originalListener.onStartRequest(request, context);
+		try {
+			this.originalListener.onStartRequest(request, context);
+		} catch (err) {
+			request.cancel(err.result);
+		}
 	};
 	
 	JSBeautifierListener.prototype.spawnWorker = function(request, context, statusCode) {
@@ -107,8 +115,18 @@ var jsb = function() {
 			var os = storageStream.getOutputStream(0);
 			os.write(new_js, new_js.length);
 			os.close();
-			t.originalListener.onDataAvailable(request, context, storageStream.newInputStream(0), 0, new_js.length);
-			t.originalListener.onStopRequest(request, context, statusCode);
+
+			try {
+				t.originalListener.onDataAvailable(request, context, storageStream.newInputStream(0), 0, new_js.length);
+			} catch (err) {
+				// ignore .. this is after onStopRequest.. so there is not much we can do..
+			}
+			
+			try {
+				t.originalListener.onStopRequest(request, context, statusCode);
+			} catch (err) {
+				// ignore .. this is after onStopRequest.. so there is not much we can do..
+			}
 		};
 		worker.onmessage = onMessage;
 	};
@@ -117,7 +135,11 @@ var jsb = function() {
 		if (this.intercept) {
 			this.spawnWorker(request, context, statusCode);
 		} else {
-			this.originalListener.onStopRequest(request, context, statusCode);
+			try {
+				this.originalListener.onStopRequest(request, context, statusCode);
+			} catch (err) {
+				// ignore
+			}
 		}
 	};
 	

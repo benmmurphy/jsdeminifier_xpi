@@ -1,23 +1,28 @@
-Components.utils.import("resource://modules/module.js");
-jsbeautifier.Worker = Worker;
+(function() {
+	Components.utils.import("resource://modules/module.js");
+	jsbeautifier.Worker = Worker;
 
-function update_text() {
-	document.getElementById("jsbStatus").label = jsbeautifier.active ? "JSB ON" : "JSB OFF";
-};
 
-function toggle() {
-	jsbeautifier.toggle();
-};
+	function update_text() {
+		document.getElementById("jsbStatus").label = jsbeautifier.active ? "JSB ON" : "JSB OFF";
+	};
 
-function load() {
-	update_text();
-	jsbeautifier.addListener(update_text);
-	document.getElementById("jsbStatus").addEventListener("click", toggle, false);
-};
+	function toggle() {
+		jsbeautifier.toggle();
+	};
 
-function unload() {
-	jsbeautifier.removeListener(update_text);
-};
+	function load() {
+		update_text();
+		jsbeautifier.addListener(update_text);
+		document.getElementById("jsbStatus").addEventListener("click", toggle, false);
+	};
 
-window.addEventListener("load", load, false);
-window.addEventListener("unload", unload, false);
+	function unload() {
+		jsbeautifier.removeListener(update_text);
+	};
+	
+	window.addEventListener("load", load, false);
+	window.addEventListener("unload", unload, false);
+
+})();
+
