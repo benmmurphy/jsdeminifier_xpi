@@ -26,9 +26,42 @@ var jsb = function() {
 	const Cc = Components.classes;
 	const Ci = Components.interfaces;
 	
+	var contentTypes = ["text/javascript", "application/javascript", "application/x-javascript"];
 	
 		
+	var prefsObserver = {
+		observe : function(subject, topic, data) {
+			if (topic != "nsPref:changed") {
+				return;
+			}
+			
+			if (data == "contenttypes") {
+				this.updateContentTypes();
+			}
+		},
 		
+		updateContentTypes: function() {
+			contentTypes = this.prefs.getCharPref("contenttypes").split(",");
+		},
+		
+		register : function() {
+			this.prefs = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefService).getBranch("extensions.jsdeminifier.");
+			this.prefs.QueryInterface(Components.interfaces.nsIPrefBranch2);
+			this.prefs.addObserver("", this, false);
+			this.updateContentTypes();
+		},
+		
+		QueryInterface : function(aIID) {
+			if (aIID.equals(Ci.nsIObserver) ||
+				aIID.equals(Ci.nsISupports))
+			{
+				return this;
+			}
+	
+			throw Components.results.NS_NOINTERFACE;
+		}
+	};
+	
 	var httpRequestObserver = {
 		observe: function(subject, topic, data) {
 			if (jsbeautifier.active && (topic == 'http-on-examine-response' || topic == 'http-on-examine-cached-response')) {
@@ -40,6 +73,16 @@ var jsb = function() {
 			}
 		},
 		
+
+		register: function() {
+			var observerService = Cc["@mozilla.org/observer-service;1"]
+				.getService(Ci.nsIObserverService);
+
+			observerService.addObserver(this,
+				"http-on-examine-cached-response", false);
+			observerService.addObserver(this,
+				"http-on-examine-response", false);
+		},
 
 		
 		QueryInterface : function(aIID) {
@@ -67,7 +110,17 @@ var jsb = function() {
 			try {
 				if (subject instanceof Components.interfaces.nsIHttpChannel) {
 					var contentType = subject.getResponseHeader("Content-Type");
-					return contentType != null && (contentType.indexOf("text/javascript") !== -1 || contentType.indexOf("application/javascript") !== -1 || contentType.indexOf("application/x-javascript") !== -1);
+					if (contentType == null) {
+						return false;
+					}
+					
+					for (var i = 0; i < contentTypes.length; ++i) {
+						if (contentType.indexOf(contentTypes[i]) !== -1) {
+							return true;
+						} 
+					}
+					
+					return false;
 				}
 			} catch (err) {
 				// ignore
@@ -151,16 +204,9 @@ var jsb = function() {
 			throw Components.results.NS_NOINTERFACE;
 	};
 	
-	var observerService = Cc["@mozilla.org/observer-service;1"]
-		.getService(Ci.nsIObserverService);
+	prefsObserver.register();
+	httpRequestObserver.register();
 	
-	observerService.addObserver(httpRequestObserver,
-		"http-on-examine-cached-response", false);
-	observerService.addObserver(httpRequestObserver,
-		"http-on-examine-response", false);
-	
-	
-
     
 }();
 
