@@ -1,23 +1,34 @@
 var EXPORTED_SYMBOLS = ["jsbeautifier"]; 
 
-var jsbeautifier = {active:false, listeners: []};
 
-jsbeautifier.addListener = function(l) {
-	this.listeners.push(l);
-};
-
-jsbeautifier.removeListener = function(l) {
-	var i = this.listeners.indexOf(l);
-	if (i < 0) {
-		return;
-	}
-	this.listeners.splice(i, 1);
-};
-
-jsbeautifier.toggle = function() {
-	this.active = !this.active;
-	for (var i = 0; i < this.listeners.length; ++i) {
-		this.listeners[i]();
+jsbeautifier = {
+	windows : [],
+	
+	add: function(browser, worker) {
+		this.windows.push({browser: browser, cfg: {active:false}, worker: worker});
+	},
+	
+	getConfig: function(browser) {
+		for (var i = 0; i < this.windows.length; ++i) {
+			if (this.windows[i].browser == browser) {
+				return this.windows[i].cfg;
+			}
+		}
+	},
+	
+	remove: function(browser) {
+		var idx = -1;
+		/* when tabs are migrated we get a TabOpen followed by a TabClose */
+		for (var i = 0; i < this.windows.length; ++i) {
+			if (this.windows[i].browser == browser) {
+				idx = i;
+				break;
+			}
+		}
+		
+		if (idx >= 0) {
+			this.windows.splice(idx, 1);
+		}
 	}
 };
 
@@ -64,14 +75,73 @@ var jsb = function() {
 	
 	var httpRequestObserver = {
 		observe: function(subject, topic, data) {
-			if (jsbeautifier.active && (topic == 'http-on-examine-response' || topic == 'http-on-examine-cached-response')) {
-				if (subject instanceof Components.interfaces.nsIHttpChannel) {
-					var newListener = new JSBeautifierListener();
+			if ((topic == 'http-on-examine-response' || topic == 'http-on-examine-cached-response')) {
+				if (subject instanceof Ci.nsIHttpChannel) {
+					
+					
 					subject.QueryInterface(Ci.nsITraceableChannel);
-					newListener.originalListener = subject.setNewListener(newListener);
+					subject.QueryInterface(Ci.nsIHttpChannel);
+					
+					var context = this.getContext(this.getWindowFromChannel(subject));
+
+					if (context != null  && context.cfg.active) {
+						var newListener = new JSBeautifierListener();
+						newListener.worker = context.worker;
+						newListener.originalListener = subject.setNewListener(newListener);
+					}
 				}
 			}
 		},
+		
+		
+		getWindowFromChannel: function(aChannel) {
+			var ctx = this.getLoadContext(aChannel);
+			if (ctx) {
+				return ctx.associatedWindow;
+			}
+			
+			return null;
+		},
+		
+		getContext : function(win)
+		{
+			for (; win; win = win.parent) {
+				for (var i = 0; i < jsbeautifier.windows.length; ++i) {
+					var entry =  jsbeautifier.windows[i];
+					if (entry.browser.contentWindow == win) {
+						return entry;
+					}
+				}
+				
+				if (win.parent == win) {
+					return null;
+				}
+			}
+		    return null;
+		},
+		
+		
+		getLoadContext: function (aChannel) {  
+			try {  
+				if (aChannel.notificationCallbacks) {
+					return aChannel.notificationCallbacks.getInterface(Ci.nsILoadContext);
+				}
+			} catch (e) {
+				
+			}
+		   
+			try {
+				if (aChannel && aChannel.loadGroup && aChannel.loadGroup.notificationCallbacks) {
+					return aChannel.loadGroup.notificationCallbacks.getInterface(Ci.nsILoadContext);
+				}
+			} catch (e) {
+				
+			}
+		     
+		
+		   return null; 
+		},
+		
 		
 
 		register: function() {
@@ -156,7 +226,7 @@ var jsb = function() {
 	};
 	
 	JSBeautifierListener.prototype.spawnWorker = function(request, context, statusCode) {
-		var worker = new jsbeautifier.Worker("chrome://jsbeautifier/content/worker.js");
+		var worker = new this.worker("chrome://jsbeautifier/content/worker.js");
 		worker.postMessage(this.receivedData);
 		this.receivedData = null;
 		
