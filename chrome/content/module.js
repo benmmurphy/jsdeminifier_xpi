@@ -52,7 +52,12 @@ var jsb = function() {
 		},
 		
 		updateContentTypes: function() {
-			contentTypes = this.prefs.getCharPref("contenttypes").split(",");
+			var str = this.prefs.getCharPref("contenttypes");
+			if (str == null) {
+				return;
+			}
+			
+			contentTypes = str.split(",");
 		},
 		
 		register : function() {
