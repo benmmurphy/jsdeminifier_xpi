@@ -1,5 +1,5 @@
 (function() {
-	Components.utils.import("resource://modules/module.js");
+	Components.utils.import("resource://jsbeautifier_js/module.js");
 
 	function selected_config() {
 	
