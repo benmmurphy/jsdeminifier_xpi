@@ -1,7 +1,13 @@
 
 onmessage = function(event) {
   var old_js = event.data.join("");
-  var new_js = js_beautify(old_js, null);
+  var new_js = old_js;
+  try {
+    new_js = js_beautify(old_js, null);
+  } catch (e) {
+    // we don't have Components.utils.reportError here :(
+  }
+
   postMessage(new_js);
   this.close();
 }
