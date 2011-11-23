@@ -42,12 +42,13 @@
 	};
 
 	function load() {
-		
+		hookup_tabs();	
 		document.getElementById("jsbStatus").addEventListener("click", toggle, false);
 		update_text();
 	};
 	
 	function unload() {
+		var container = gBrowser.tabContainer;
 		for (var i = 0; i < container.childNodes.length; ++i) {
 			jsbeautifier.remove(gBrowser.getBrowserForTab(container.childNodes[i]));
 		}
@@ -70,14 +71,17 @@
 		update_text();
 	};
 	
-	
-	var container = gBrowser.tabContainer;  
-	container.addEventListener("TabOpen", tabOpen, false);  
- 	container.addEventListener("TabClose", tabClose, false);
-	container.addEventListener("TabSelect", tabSelect, false);  
-	
-	for (var i = 0; i < container.childNodes.length; ++i) {
-		jsbeautifier.add(gBrowser.getBrowserForTab(container.childNodes[i]), window.Worker);
+
+	function hookup_tabs() {	
+		var container = gBrowser.tabContainer;  
+		if (container) {
+			container.addEventListener("TabOpen", tabOpen, false);  
+			container.addEventListener("TabClose", tabClose, false);
+			container.addEventListener("TabSelect", tabSelect, false);  
+			for (var i = 0; i < container.childNodes.length; ++i) {
+				jsbeautifier.add(gBrowser.getBrowserForTab(container.childNodes[i]), window.Worker);
+			}
+		}
 	}
 	
 	window.addEventListener("load", load, false);
