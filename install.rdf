@@ -8,7 +8,7 @@
         <!-- Required Items -->
         <em:id>jsdeminifier@murphy.ben.name</em:id>
         <em:name>JS Deminifier</em:name>
-        <em:version>1.0.5</em:version>
+        <em:version>1.0.6</em:version>
 
 
         <em:targetApplication>
