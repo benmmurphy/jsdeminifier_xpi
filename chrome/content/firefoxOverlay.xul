@@ -2,6 +2,16 @@
   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <script type="application/x-javascript" src="chrome://jsbeautifier/content/overlay.js"/>
   <statusbar id="status-bar">
-	<statusbarpanel id="jsbStatus" label="JSB"/>
+    <statusbarpanel id="jsbStatus" label="JSB"/>
   </statusbar>
+  <menupopup id="menuWebDeveloperPopup">
+    <menu insertbefore="webConsole" id="appmenu_jsdeminifier" label="JS Deminifier">
+      <menupopup>
+        <menuitem type="checkbox" checked="false" id="enable_jsdeminifier" label="Enable for Current Tab"/>
+        <menuitem type="checkbox" checked="true" id="disable_jsdeminifier" label="Disable for Current Tab"/>
+      </menupopup>
+    </menu>
+    <menuseperator insertbefore="webConsole"/>
+  </menupopup>
+  
 </overlay>
