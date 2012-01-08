@@ -5,7 +5,7 @@
     <statusbarpanel id="jsbStatus" label="JSD"/>
   </statusbar>
   <menupopup id="menuWebDeveloperPopup">
-    <menu insertbefore="webConsole" id="appmenu_jsdeminifier" label="JS Deminifier">
+    <menu insertbefore="webConsole" id="appmenu_jsdeminifier" label="Javascript Deminifier">
       <menupopup>
         <menuitem type="checkbox" checked="false" id="enable_jsdeminifier" label="Enable for Current Tab"/>
         <menuitem type="checkbox" checked="true" id="disable_jsdeminifier" label="Disable for Current Tab"/>
