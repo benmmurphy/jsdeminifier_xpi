@@ -2,7 +2,7 @@
   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <script type="application/x-javascript" src="chrome://jsbeautifier/content/overlay.js"/>
   <statusbar id="status-bar">
-    <statusbarpanel id="jsbStatus" label="JSB"/>
+    <statusbarpanel id="jsbStatus" label="JSD"/>
   </statusbar>
   <menupopup id="menuWebDeveloperPopup">
     <menu insertbefore="webConsole" id="appmenu_jsdeminifier" label="JS Deminifier">

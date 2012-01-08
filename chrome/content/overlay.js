@@ -33,7 +33,7 @@
   }
 
   function update_status_text(enabled) {
-    document.getElementById("jsbStatus").label = enabled ? "JSB ON" : "JSB OFF";
+    document.getElementById("jsbStatus").label = enabled ? "JSD ON" : "JSD OFF";
   }
 
   function toggle() {
